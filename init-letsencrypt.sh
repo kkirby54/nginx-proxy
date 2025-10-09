@@ -81,9 +81,8 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-echo ""
 echo "== 2/2: DNS-01(duckdns)로 ${domains_wildcard} 발급 =="
-docker-compose run --rm --entrypoint """ certbot-duckdns \
+docker-compose run --rm --entrypoint "" certbot-duckdns \
   certbot certonly \
     --non-interactive --agree-tos --email "$email" \
     --preferred-challenges dns \
@@ -128,7 +127,7 @@ else
   echo "문제 해결:"
   echo "  1. DUCKDNS_TOKEN 환경변수 확인"
   echo "  2. ./certbot/duckdns.ini 파일 확인"
-  echo "  3. DNS 전파 시간 증가 (propagation_seconds 값 증가)"
+  echo "  3. DNS 전파 시간 증가 propagation_seconds 값 증가"
   echo "  4. 테스트하려면 스크립트에서 staging=1로 변경"
   exit 1
 fi
