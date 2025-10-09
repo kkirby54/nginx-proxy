@@ -13,7 +13,7 @@ domains_root="minhub.duckdns.org"
 domains_wildcard="*.minhub.duckdns.org"
 email="sdk926@gmail.com"  # 필수: 실제 이메일로 변경하세요 (만료 알림 수신용)
 staging=0  # 0=실제 인증서, 1=테스트 인증서 (테스트 시 1로 변경)
-propagation_seconds=30  # DNS 전파 대기 시간 (초)
+propagation_seconds=60  # DNS 전파 대기 시간 (초)
 
 # 디렉토리 확인
 if [ ! -d "certbot/conf" ] || [ ! -d "certbot/www" ]; then
@@ -21,17 +21,7 @@ if [ ! -d "certbot/conf" ] || [ ! -d "certbot/www" ]; then
   echo "다음 명령어로 생성하세요: mkdir -p certbot/conf certbot/www"
   exit 1
 fi
-# duckdns 토큰 파일 생성(없으면)
-if [ ! -f ./certbot/duckdns.ini ]; then
-  : "${DUCKDNS_TOKEN:?DUCKDNS_TOKEN 환경변수를 설정하세요}"
-  cat > ./certbot/duckdns.ini <<EOF
-dns_duckdns_token=${DUCKDNS_TOKEN}
-EOF
-  chmod 600 ./certbot/duckdns.ini
-fi
-
-
-
+dns_duckdns_token=$(grep '^dns_duckdns_token=' ./certbot/duckdns.ini | cut -d'=' -f2-)
 
 # nginx 설정 확인
 echo "Step 1: nginx 설정 확인"
@@ -93,15 +83,14 @@ fi
 
 echo ""
 echo "== 2/2: DNS-01(duckdns)로 ${domains_wildcard} 발급 =="
-docker-compose run --rm certbot-duckdns \
+docker-compose run --rm --entrypoint """ certbot-duckdns \
   certbot certonly \
     --non-interactive --agree-tos --email "$email" \
     --preferred-challenges dns \
     --authenticator dns-duckdns \
     --dns-duckdns-credentials /etc/letsencrypt/duckdns.ini \
     --dns-duckdns-propagation-seconds ${propagation_seconds} \
-    --force-renewal \
-    --cert-name "wildcard.minhub.duckdns.org" \
+    --cert-name "${domains_wildcard}" \
     $staging_arg \
     -d "${domains_wildcard}"
 
