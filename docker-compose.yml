@@ -33,6 +33,19 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     networks:
       - nginx-network
+      
+  # DNS-01(duckdns) 전용 certbot
+  certbot-duckdns:
+    image: infinityofspace/certbot_dns_duckdns:latest
+    container_name: certbot-duckdns
+    environment:
+      - DUCKDNS_TOKEN=${DUCKDNS_TOKEN}     # .env 또는 쉘에서 export
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/duckdns.ini:/etc/letsencrypt/duckdns.ini:ro
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - nginx-network
 
 networks:
   nginx-network:
